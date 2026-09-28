@@ -15,6 +15,14 @@ export default defineConfig({
         await rm(resolve(__dirname, '../public/assets'), { recursive: true, force: true })
       },
     },
+    {
+      name: 'rewrite-public-icon-paths',
+      transform(code, id) {
+        if (!id.endsWith('.vue') || !code.includes('/icons/')) return null
+
+        return code.replaceAll('/icons/', '/app-icons/')
+      },
+    },
     vue(),
   ],
   build: {
