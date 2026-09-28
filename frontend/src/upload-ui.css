@@ -1,0 +1,5 @@
+.photo-field input[type=file]{width:100%;padding:20px 16px!important;border:2px dashed #a9ddd4!important;border-radius:14px!important;background:linear-gradient(135deg,#f7fffd,#edfaff)!important;color:#66828b;font:13px Arial!important;cursor:pointer;transition:border-color .2s,background .2s,box-shadow .2s}
+.photo-field input[type=file]:hover{border-color:#12a591!important;background:#e9faf6!important;box-shadow:0 6px 16px #138d7b18}
+.photo-field input[type=file]:focus-visible{outline:3px solid #57c6b8;outline-offset:3px}
+.photo-field input[type=file]::file-selector-button{margin-right:14px;border:0;border-radius:10px;padding:11px 17px;background:linear-gradient(135deg,#0eaa99,#087e78);color:#fff;font:bold 13px Arial;cursor:pointer;box-shadow:0 4px 10px #087e7830;transition:transform .2s,filter .2s}
+.photo-field input[type=file]::file-selector-button:hover{filter:brightness(1.08);transform:translateY(-1px)}

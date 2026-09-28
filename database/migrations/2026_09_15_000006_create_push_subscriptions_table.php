@@ -1,0 +1,3 @@
+<?php
+use Illuminate\Database\Migrations\Migration;use Illuminate\Database\Schema\Blueprint;use Illuminate\Support\Facades\Schema;
+return new class extends Migration { public function up():void{Schema::create('push_subscriptions',function(Blueprint $t):void{$t->id();$t->foreignId('user_id')->constrained()->cascadeOnDelete();$t->text('endpoint');$t->string('endpoint_hash',64);$t->text('public_key');$t->text('auth_token');$t->string('device_name')->nullable();$t->string('browser')->nullable();$t->timestamp('last_used_at')->nullable();$t->timestamps();$t->unique(['user_id','endpoint_hash']);});}public function down():void{Schema::dropIfExists('push_subscriptions');} };

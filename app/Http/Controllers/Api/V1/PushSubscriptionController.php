@@ -1,0 +1,4 @@
+<?php
+namespace App\Http\Controllers\Api\V1;
+use App\Http\Controllers\Controller;use Illuminate\Http\JsonResponse;use Illuminate\Http\Request;use Illuminate\Support\Facades\DB;
+class PushSubscriptionController extends Controller { public function store(Request $r):JsonResponse{$data=$r->validate(['endpoint'=>['required','url'],'public_key'=>['required','string'],'auth_token'=>['required','string'],'device_name'=>['nullable','string','max:100'],'browser'=>['nullable','string','max:100']]);$hash=hash('sha256',$data['endpoint']);DB::table('push_subscriptions')->updateOrInsert(['user_id'=>$r->user()->id,'endpoint_hash'=>$hash],array_merge($data,['user_id'=>$r->user()->id,'endpoint_hash'=>$hash,'last_used_at'=>now(),'updated_at'=>now(),'created_at'=>now()]));return response()->json(['success'=>true,'message'=>'Perangkat notifikasi tersimpan.'],201);} }

@@ -1,0 +1,4 @@
+<?php
+namespace App\Jobs;
+use Illuminate\Bus\Queueable;use Illuminate\Contracts\Queue\ShouldQueue;use Illuminate\Foundation\Bus\Dispatchable;use Illuminate\Support\Facades\DB;
+class SendScheduledRemindersJob implements ShouldQueue { use Dispatchable,Queueable; public function handle():void{$today=today(config('app.timezone'));$controls=DB::table('control_schedules')->whereDate('control_date',$today)->where('status','scheduled')->get();foreach($controls as $control){$user=DB::table('patients')->where('id',$control->patient_id)->value('user_id');if($user)DB::table('user_notifications')->insert(['user_id'=>$user,'title'=>'Pengingat jadwal kontrol','message'=>'Anda memiliki jadwal kontrol hari ini.','type'=>'control_reminder','related_entity_type'=>'control_schedule','related_entity_id'=>$control->id,'created_at'=>now(),'updated_at'=>now()]);}} }
