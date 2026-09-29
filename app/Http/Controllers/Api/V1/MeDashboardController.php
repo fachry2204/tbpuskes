@@ -40,7 +40,15 @@ class MeDashboardController extends Controller
         $scheduleTimeIds = $medicationSchedules->pluck('schedule_time_id');
         $activeScheduleReports = (clone $reports)->whereIn('schedule_time_id', $scheduleTimeIds);
         $reportedScheduleIds = (clone $activeScheduleReports)->pluck('schedule_time_id')->filter()->all();
-        $nextMedication = $medicationSchedules->first(fn ($schedule) => !in_array($schedule->schedule_time_id, $reportedScheduleIds));
+        $nextMedication = $medicationSchedules->first(fn ($schedule) => ! in_array($schedule->schedule_time_id, $reportedScheduleIds));
+        $nextMedicationDate = $today->copy();
+        if (! $nextMedication && $medicationSchedules->isNotEmpty()) {
+            $nextMedication = $medicationSchedules->first();
+            $nextMedicationDate->addDay();
+        }
+        if ($nextMedication) {
+            $nextMedication->schedule_date = $nextMedicationDate->toDateString();
+        }
         $next = DB::table('control_schedules')
             ->join('treatment_places', 'treatment_places.id', '=', 'control_schedules.treatment_place_id')
             ->where('control_schedules.patient_id', $patient->id)

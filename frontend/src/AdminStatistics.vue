@@ -45,6 +45,7 @@ const cards = computed(() => {
 const maximumTerritory = computed(() => Math.max(1, ...(data.value?.by_rw.map(item => Number(item.total)) ?? [1])))
 const maximumPlace = computed(() => Math.max(1, ...(data.value?.by_treatment_place.map(item => Number(item.total)) ?? [1])))
 const updatedAt = computed(() => data.value ? new Date(data.value.generated_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '')
+const formatShortDate = (value?: string | null) => { if (!value) return ''; const str = String(value).slice(0, 10); const [y, m, d] = str.split('-').map(Number); if (!y || !m || !d) return value; const date = new Date(y, m - 1, d); return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }); }
 const medicationTotal = computed(() => data.value ? Math.max(1, data.value.today.taken + data.value.today.not_taken + data.value.today.not_reported) : 1)
 
 async function loadStatistics() {
@@ -149,7 +150,7 @@ onMounted(loadStatistics)
             <div v-for="day in data.adherence_history" :key="day.date" class="adherence-day">
               <b>{{ day.percent }}%</b>
               <div class="adherence-bar"><i :style="{ height: `${day.percent}%` }"></i></div>
-              <small>{{ new Date(`${day.date}T00:00:00`).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) }}</small>
+              <small>{{ formatShortDate(day.date) }}</small>
             </div>
           </div>
         </article>
