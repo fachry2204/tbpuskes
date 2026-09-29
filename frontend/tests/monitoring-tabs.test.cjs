@@ -1,0 +1,17 @@
+const test = require('node:test')
+const assert = require('node:assert/strict')
+const fs = require('node:fs')
+const path = require('node:path')
+
+test('admin monitoring page displays tabs for reported and unreported patients', () => {
+  const vueFile = fs.readFileSync(path.join(__dirname, '../src/AdminMonitoring.vue'), 'utf8')
+  
+  // Memastikan ada dua tab
+  assert.match(vueFile, /Pasien Sudah Minum Obat/)
+  assert.match(vueFile, /Pasien Belum Lapor/)
+  
+  // Memastikan modal detail laporan dapat dibuka
+  assert.match(vueFile, /openReport\(row\)/)
+  assert.match(vueFile, /Detail Laporan Minum Obat/)
+  assert.match(vueFile, /verifyReport/)
+})

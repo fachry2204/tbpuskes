@@ -73,6 +73,7 @@ Route::prefix('v1')->group(function (): void {
     Route::get('/me/medication/history', [MedicationReportController::class, 'history'])->middleware('auth:sanctum');
     Route::get('/medication-monitoring', [MedicationMonitoringController::class, 'index'])->middleware('auth:sanctum');
     Route::get('/medication-monitoring/map', [MedicationMonitoringController::class, 'map'])->middleware('auth:sanctum');
+    Route::get('/medication-monitoring/unreported', [MedicationMonitoringController::class, 'unreported'])->middleware('auth:sanctum');
     Route::post('/medication-monitoring/{report}/verify', [MedicationMonitoringController::class, 'verify'])->middleware('auth:sanctum');
     Route::get('/medication-monitoring/{report}/photo', [MedicationMonitoringController::class, 'photo'])->middleware('auth:sanctum');
     Route::get('/side-effects', [MedicationMonitoringController::class, 'sideEffects'])->middleware('auth:sanctum');
