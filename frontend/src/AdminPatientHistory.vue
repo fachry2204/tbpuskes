@@ -5,7 +5,7 @@ type Control={id:number;control_date:string;start_time:string;purpose?:string;st
 type Medication={id:number;report_date:string;scheduled_time?:string;medication_taken:boolean;not_taken_reason?:string;has_side_effect:boolean;side_effect_category?:string;status:string}
 const id=Number(location.pathname.match(/\/admin\/patients\/(\d+)\/history/)?.[1]),base=import.meta.env.VITE_API_BASE_URL??'http://127.0.0.1:8010/api/v1',headers={Authorization:`Bearer ${sessionStorage.getItem('tb_token')}`,Accept:'application/json'}
 const patient=ref<Patient|null>(null),controls=ref<Control[]>([]),medications=ref<Medication[]>([]),loading=ref(true),error=ref('')
-const photo=(value:Patient)=>value.photo_path?`/storage/${value.photo_path}`:'/icons/icon-512.png'
+const photo=(value:Patient)=>value.photo_path?`/media/profile/${value.photo_path}`:'/icons/icon-512.png'
 const date=(value?:string)=>{if(!value)return '—';const [y,m,d]=value.slice(0,10).split('-');return y&&m&&d?`${d}/${m}/${y}`:value}
 const controlLabel=(status:string)=>({scheduled:'Terjadwal',confirmed:'Terjadwal',attended:'Datang kontrol',missed:'Tidak datang',rescheduled:'Ganti tanggal',cancelled:'Dibatalkan'}[status]??status)
 async function load(){try{const r=await fetch(`${base}/patients/${id}/history`,{headers}),p=await r.json();if(!r.ok)throw new Error(p.message??'Gagal memuat riwayat pasien.');patient.value=p.data.patient;controls.value=p.data.controls;medications.value=p.data.medications}catch(e){error.value=e instanceof Error?e.message:'Gagal memuat riwayat pasien.'}finally{loading.value=false}}

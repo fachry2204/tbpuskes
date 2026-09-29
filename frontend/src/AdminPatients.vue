@@ -7,7 +7,7 @@ const filterRw=ref(''),filterGender=ref(''),filterAge=ref('')
 const rwOptions=computed(()=>[...new Set(patients.value.map(p=>p.rw).filter(Boolean))].sort())
 const filteredPatients=computed(()=>patients.value.filter(p=>{const age=p.birth_date?Math.floor((Date.now()-new Date(p.birth_date).getTime())/31557600000):null;return (!filterRw.value||p.rw===filterRw.value)&&(!filterGender.value||p.gender===filterGender.value)&&(!filterAge.value||(filterAge.value==='under40'&&age!==null&&age<40)||(filterAge.value==='over40'&&age!==null&&age>=40))}))
 const base='/api/v1',headers={Authorization:`Bearer ${sessionStorage.getItem('tb_token')}`,Accept:'application/json'}
-const photo=(p:Patient)=>p.photo_path?'/storage/'+p.photo_path:'/icons/icon-512.png'
+const photo=(p:Patient)=>p.photo_path?'/media/profile/'+p.photo_path:'/icons/icon-512.png'
 const formatDate=(value?:string|null)=>{if(!value)return '';const [year,month,day]=value.slice(0,10).split('-');return year&&month&&day?`${day}/${month}/${year}`:value}
 const whatsapp=(phone?:string)=>phone?'https://wa.me/'+phone.replace(/[^0-9]/g,''):''
 async function load(){try{const r=await fetch(`${base}/patients?per_page=100`,{headers});const p=await r.json();if(!r.ok)throw new Error(p.message);patients.value=p.data;stats.value=p.meta.stats}catch(e){error.value=e instanceof Error?e.message:'Gagal memuat pasien.'}finally{loading.value=false}}

@@ -5,7 +5,7 @@ type Cadre={id:number;full_name:string;nik:string;phone:string;rt?:string;rw?:st
 const base=import.meta.env.VITE_API_BASE_URL??'http://127.0.0.1:8010/api/v1',headers={Authorization:`Bearer ${sessionStorage.getItem('tb_token')}`,Accept:'application/json'}
 const items=ref<Cadre[]>([]),error=ref(''),loading=ref(true),selected=ref<Cadre|null>(null),editing=ref(false),saving=ref(false),deleting=ref(false)
 const patientsOf=(cadre:Cadre)=>cadre.patients??[]
-const photo=(cadre:Cadre)=>cadre.photo_path?`/storage/${cadre.photo_path}`:'/icons/icon-512.png'
+const photo=(cadre:Cadre)=>cadre.photo_path?`/media/profile/${cadre.photo_path}`:'/icons/icon-512.png'
 const whatsapp=(phone:string)=>`https://wa.me/${phone.replace(/\D/g,'')}`
 const formatDate=(value?:string)=>{if(!value)return '';const [year,month,day]=value.slice(0,10).split('-');return year&&month&&day?`${day}/${month}/${year}`:value}
 const displayDate=(value?:string)=>formatDate(value)||'Belum tersedia'
