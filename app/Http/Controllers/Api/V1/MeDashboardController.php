@@ -4,17 +4,21 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Patient;
+use App\Services\PatientMedicationScheduleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class MeDashboardController extends Controller
 {
+    public function __construct(private readonly PatientMedicationScheduleService $medicationScheduleService) {}
+
     public function patient(Request $request): JsonResponse
     {
         abort_unless($request->user()->role === 'pasien', 403);
 
         $patient = Patient::query()->with('cadre')->where('user_id', $request->user()->id)->firstOrFail();
+        $this->medicationScheduleService->ensureFor($patient);
         $today = today(config('app.timezone'));
         $reports = DB::table('medication_reports')->where('patient_id', $patient->id)->whereDate('report_date', $today);
         $medicationSchedules = DB::table('medication_schedule_times as times')

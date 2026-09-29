@@ -14,12 +14,19 @@ class PatientMedicationScheduleService
             return;
         }
 
-        $hasActivePlan = DB::table('patient_medication_plans')
+        $activePlan = DB::table('patient_medication_plans')
             ->where('patient_id', $patient->id)
             ->where('is_active', true)
-            ->exists();
+            ->first(['id', 'frequency_per_day']);
 
-        if ($hasActivePlan) {
+        if ($activePlan) {
+            if ((int) $activePlan->frequency_per_day === 1) {
+                DB::table('medication_schedule_times')
+                    ->where('patient_medication_plan_id', $activePlan->id)
+                    ->whereNull('time_of_day')
+                    ->update(['time_of_day' => '07:00', 'label' => 'Pagi', 'updated_at' => now()]);
+            }
+
             return;
         }
 
@@ -49,7 +56,7 @@ class PatientMedicationScheduleService
     private function timesFor(int $frequency): array
     {
         $presets = [
-            1 => [['label' => 'Sekali sehari', 'time_of_day' => null]],
+            1 => [['label' => 'Pagi', 'time_of_day' => '07:00']],
             2 => [['label' => 'Pagi', 'time_of_day' => '07:00'], ['label' => 'Malam', 'time_of_day' => '19:00']],
             3 => [['label' => 'Pagi', 'time_of_day' => '07:00'], ['label' => 'Siang', 'time_of_day' => '13:00'], ['label' => 'Malam', 'time_of_day' => '19:00']],
         ];
