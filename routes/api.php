@@ -51,6 +51,8 @@ Route::prefix('v1')->group(function (): void {
     Route::post('/medications/{medication}/deactivate', [MedicationController::class, 'deactivate'])->middleware('auth:sanctum');
     Route::get('/control-schedules', [StaffControlScheduleController::class, 'index'])->middleware('auth:sanctum');
     Route::post('/control-schedules', [StaffControlScheduleController::class, 'store'])->middleware('auth:sanctum');
+    Route::put('/control-schedules/{schedule}', [StaffControlScheduleController::class, 'update'])->middleware('auth:sanctum');
+    Route::delete('/control-schedules/{schedule}', [StaffControlScheduleController::class, 'destroy'])->middleware('auth:sanctum');
     Route::patch('/control-schedules/{schedule}/status', [StaffControlScheduleController::class, 'updateStatus'])->middleware('auth:sanctum');
     Route::get('/notifications', [NotificationController::class, 'index'])->middleware('auth:sanctum');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])->middleware('auth:sanctum');

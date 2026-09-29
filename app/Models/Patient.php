@@ -12,6 +12,9 @@ use Illuminate\Support\Carbon;
 class Patient extends Model
 {
     use HasFactory, SoftDeletes;
+    // Keep compatibility with the legacy NOT NULL column without collecting birthplace.
+    protected $attributes = ['birth_place' => ''];
+    protected $hidden = ['birth_place'];
     protected $fillable = ['user_id', 'medical_record_number', 'nik', 'full_name', 'birth_place', 'birth_date', 'gender', 'phone', 'rt', 'rw', 'full_address', 'treatment_place_id', 'cadre_id', 'treatment_start_date', 'tb_diagnosis', 'diagnosis_type', 'daily_dose_frequency', 'status', 'photo_path', 'home_latitude', 'home_longitude'];
     protected function casts(): array { return ['birth_date' => 'date', 'treatment_start_date' => 'date']; }
     protected function age(): Attribute { return Attribute::get(fn (): int => Carbon::parse($this->birth_date)->age); }

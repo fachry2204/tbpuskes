@@ -11,6 +11,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class PatientController extends Controller
 {
@@ -112,7 +114,45 @@ class PatientController extends Controller
         $patient = DB::transaction(function () use ($data, $phone, $photoPath): Patient { $user = User::create(['name' => $data['full_name'], 'phone' => $phone, 'password' => Hash::make($data['password']), 'role' => 'pasien', 'is_active' => true]); unset($data['password']); $data['phone'] = $phone; $data['user_id'] = $user->id; $data['photo_path'] = $photoPath; $patient = Patient::create($data); $this->medicationScheduleService->ensureFor($patient); return $patient; });
         return response()->json(['success' => true, 'message' => 'Pasien berhasil dibuat.', 'data' => $patient], 201);
     }
-    public function update(Request $request, Patient $patient): JsonResponse { abort_unless(in_array($request->user()->role, ['admin', 'staff'], true), 403); $data=$request->validate(['full_name'=>['sometimes','string','max:255'],'nik'=>['sometimes','digits:16','unique:patients,nik,'.$patient->id],'birth_place'=>['sometimes','string','max:100'],'birth_date'=>['sometimes','date','before:today'],'gender'=>['sometimes','in:L,P'],'phone'=>['sometimes','string','max:20'],'rt'=>['sometimes','string','max:3'],'rw'=>['sometimes','string','max:3'],'full_address'=>['sometimes','string','max:1000'],'cadre_id'=>['nullable','exists:cadres,id'],'treatment_place_id'=>['sometimes','exists:treatment_places,id'],'treatment_start_date'=>['sometimes','date'],'tb_diagnosis'=>['sometimes','in:TB Paru,TB Ekstraparu'],'diagnosis_type'=>['sometimes','in:Bakteriologis,Klinis'],'status'=>['sometimes','in:active,completed,paused,moved,deceased'],'daily_dose_frequency'=>['sometimes','integer','between:1,6']]); DB::transaction(function () use ($patient, $data): void { $patient->update($data); $this->medicationScheduleService->ensureFor($patient->fresh()); }); return response()->json(['success'=>true,'message'=>'Pasien diperbarui.','data'=>$patient->fresh('cadre')]); }
+    public function update(Request $request, Patient $patient): JsonResponse
+    {
+        abort_unless(in_array($request->user()->role, ['admin', 'staff'], true), 403);
+        if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', (string) $request->input('birth_date'))) {
+            [$day, $month, $year] = explode('/', (string) $request->input('birth_date'));
+            $request->merge(['birth_date' => "$year-$month-$day"]);
+        }
+        $data = $request->validate([
+            'full_name'=>['sometimes','string','max:255'], 'nik'=>['sometimes','digits:16','unique:patients,nik,'.$patient->id],
+            'birth_date'=>['sometimes','date','before:today'], 'gender'=>['sometimes','in:L,P'],
+            'phone'=>['sometimes','string','max:20'], 'password'=>['nullable','string','min:8'],
+            'rt'=>['sometimes','string','max:3'], 'rw'=>['sometimes','string','max:3'],
+            'full_address'=>['sometimes','string','max:1000'], 'cadre_id'=>['nullable','exists:cadres,id'],
+            'treatment_place_id'=>['sometimes','exists:treatment_places,id'], 'treatment_start_date'=>['sometimes','date'],
+            'tb_diagnosis'=>['sometimes','in:TB Paru,TB Ekstraparu'], 'diagnosis_type'=>['sometimes','in:Bakteriologis,Klinis'],
+            'status'=>['sometimes','in:active,completed,paused,moved,deceased'], 'daily_dose_frequency'=>['sometimes','integer','between:1,6'],
+            'photo'=>['nullable','image','mimes:jpg,jpeg,png,webp','max:2048'],
+        ]);
+        if (isset($data['phone'])) {
+            $data['phone'] = $this->normalizePhone($data['phone']);
+            abort_unless($data['phone'], 422, 'Nomor HP Indonesia tidak valid.');
+        }
+        if (isset($data['phone'])) {
+            Validator::make($data, [
+                'phone' => [Rule::unique('users', 'phone')->ignore($patient->user_id)],
+            ])->validate();
+        }
+        $account = array_intersect_key($data, array_flip(['phone']));
+        if (isset($data['full_name'])) $account['name'] = $data['full_name'];
+        if (!empty($data['password'])) $account['password'] = Hash::make($data['password']);
+        unset($data['password'], $data['photo']);
+        if ($request->hasFile('photo')) $data['photo_path'] = $request->file('photo')->store('patients', 'public');
+        DB::transaction(function () use ($patient, $data, $account): void {
+            $patient->update($data);
+            $patient->user?->update($account);
+            $this->medicationScheduleService->ensureFor($patient->fresh());
+        });
+        return response()->json(['success'=>true,'message'=>'Pasien diperbarui.','data'=>$patient->fresh('cadre')]);
+    }
     public function deactivate(Request $request, Patient $patient): JsonResponse { abort_unless(in_array($request->user()->role,['admin','staff'],true),403); $patient->update(['status'=>'paused']); return response()->json(['success'=>true,'message'=>'Pasien dinonaktifkan.']); }
     public function destroy(Request $request, Patient $patient): JsonResponse { abort_unless($request->user()->role==='admin',403); $patient->delete(); return response()->json(['success'=>true,'message'=>'Pasien dihapus.']); }
 

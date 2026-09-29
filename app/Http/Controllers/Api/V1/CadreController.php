@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 class CadreController extends Controller
@@ -26,9 +27,20 @@ class CadreController extends Controller
             'birth_place'=>['sometimes','string','max:100'], 'birth_date'=>['sometimes','date'], 'gender'=>['sometimes',Rule::in(['L','P'])],
             'phone'=>['sometimes','string','max:20'], 'rt'=>['sometimes','string','max:3'], 'rw'=>['sometimes','string','max:3'],
             'full_address'=>['sometimes','string','max:1000'], 'is_active'=>['sometimes','boolean'],
+            'working_area'=>['nullable','string','max:255'], 'password'=>['nullable','string','min:8'],
+            'photo'=>['nullable','image','mimes:jpg,jpeg,png,webp','max:2048'],
         ]);
         if (isset($data['phone'])) { $phone=$this->phone($data['phone']); abort_unless($phone,422,'Nomor HP Indonesia tidak valid.'); $data['phone']=$phone; }
-        DB::transaction(function() use($cadre,$data): void { $cadre->update($data); $cadre->user?->update(array_filter(['name'=>$data['full_name']??null,'phone'=>$data['phone']??null],fn($value)=>$value!==null)); });
+        if (isset($data['phone'])) {
+            Validator::make($data, [
+                'phone' => [Rule::unique('users', 'phone')->ignore($cadre->user_id)],
+            ])->validate();
+        }
+        $account = array_filter(['name'=>$data['full_name']??null,'phone'=>$data['phone']??null],fn($value)=>$value!==null);
+        if (!empty($data['password'])) $account['password'] = Hash::make($data['password']);
+        unset($data['password'], $data['photo']);
+        if ($request->hasFile('photo')) $data['photo_path'] = $request->file('photo')->store('cadres', 'public');
+        DB::transaction(function() use($cadre,$data,$account): void { $cadre->update($data); $cadre->user?->update($account); });
         return response()->json(['success'=>true,'message'=>'Kader diperbarui.','data'=>$cadre->fresh()]);
     }
     public function deactivate(Request $request, Cadre $cadre): JsonResponse { abort_unless(in_array($request->user()->role,['admin','staff'],true),403); $cadre->update(['is_active'=>false]); return response()->json(['success'=>true,'message'=>'Kader dinonaktifkan.']); }
