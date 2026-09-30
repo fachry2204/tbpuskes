@@ -26,4 +26,40 @@ class MedicationReportController extends Controller
         $report = DB::transaction(function () use ($patient,$schedule,$today,$request,$path,$hash,$address) { $report=MedicationReport::create(['patient_id'=>$patient->id,'patient_medication_plan_id'=>$schedule->plan_id,'schedule_time_id'=>$schedule->id,'report_date'=>$today,'scheduled_time'=>$schedule->time_of_day,'medication_taken'=>$request->boolean('medication_taken'),'not_taken_reason'=>$request->input('not_taken_reason'),'has_side_effect'=>$request->boolean('has_side_effect'),'side_effect_category'=>$request->input('side_effect_category'),'side_effect_description'=>$request->input('side_effect_description'),'photo_path'=>$path,'photo_hash'=>$hash,'latitude'=>$request->input('latitude'),'longitude'=>$request->input('longitude'),'gps_accuracy'=>$request->input('gps_accuracy'),'formatted_address'=>$address,'server_received_at'=>now(),'status'=>$request->boolean('has_side_effect')?'follow_up':'submitted']); if($request->boolean('has_side_effect')) DB::table('side_effect_reports')->insert(['medication_report_id'=>$report->id,'patient_id'=>$patient->id,'category'=>$request->input('side_effect_category'),'description'=>$request->input('side_effect_description'),'severity'=>'low','requires_follow_up'=>true,'follow_up_status'=>'open','created_at'=>now(),'updated_at'=>now()]); return $report; });
         return response()->json(['success' => true, 'message' => 'Laporan berhasil dikirim.', 'data' => $report], 201);
     }
+
+    public function addSideEffect(\Illuminate\Http\Request $request, int $reportId): JsonResponse
+    {
+        $patient = Patient::query()->where('user_id', $request->user()->id)->firstOrFail();
+        $report = MedicationReport::query()->where('id', $reportId)->where('patient_id', $patient->id)->firstOrFail();
+
+        $request->validate([
+            'category' => 'required|string|in:mual,pusing,ruam,lainnya',
+            'description' => 'required|string|max:2000',
+        ]);
+
+        DB::transaction(function () use ($report, $request, $patient) {
+            if (!$report->has_side_effect) {
+                $report->update([
+                    'has_side_effect' => true,
+                    'side_effect_category' => $request->input('category'),
+                    'side_effect_description' => $request->input('description'),
+                    'status' => 'follow_up',
+                ]);
+            }
+
+            DB::table('side_effect_reports')->insert([
+                'medication_report_id' => $report->id,
+                'patient_id' => $patient->id,
+                'category' => $request->input('category'),
+                'description' => $request->input('description'),
+                'severity' => 'low',
+                'requires_follow_up' => true,
+                'follow_up_status' => 'open',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
+
+        return response()->json(['success' => true, 'message' => 'Efek samping berhasil dilaporkan.']);
+    }
 }

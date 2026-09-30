@@ -27,6 +27,7 @@ Route::prefix('v1')->group(function (): void {
     Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
     Route::post('/auth/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
     Route::post('/me/medication/reports', [MedicationReportController::class, 'store'])->middleware('auth:sanctum');
+    Route::post('/me/medication/reports/{report}/side-effect', [MedicationReportController::class, 'addSideEffect'])->middleware('auth:sanctum');
     Route::get('/dashboard/summary', [DashboardController::class, 'summary'])->middleware('auth:sanctum');
     Route::get('/me/control-schedules', [ControlScheduleController::class, 'mine'])->middleware('auth:sanctum');
     Route::get('/patients', [PatientController::class, 'index'])->middleware('auth:sanctum');

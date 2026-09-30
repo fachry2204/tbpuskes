@@ -35,10 +35,17 @@ test('side effects panel uses safe date fallback and translated status', () => {
   assert.match(source, /function formatDate\(value\?:string\|null\).*Tanggal tidak tersedia/)
 })
 
-test('cadre uploaded photo fills all highlighted patient-dashboard images', () => {
-  assert.match(source, /const cadrePhoto = computed/)
-  assert.match(source, /class="patient-avatar-photo"[^>]*:src="cadrePhoto"/)
-  assert.match(source, /class="patient-welcome-figure patient-welcome-photo"[^>]*:src="cadrePhoto \|\| patientHero"/)
-  assert.match(source, /class="patient-profile-photo"[^>]*:src="cadrePhoto"/)
+test('reported medication history can submit a later side effect', () => {
+  assert.match(source, /Tambah Efek Samping/)
+  assert.match(source, /\/me\/medication\/reports\/\$\{sideEffectReportId\.value\}\/side-effect/)
+  assert.match(source, /submitHistorySideEffect/)
+})
+
+test('patient dashboard uses patient uploaded photo, never cadre photo', () => {
+  assert.match(source, /const patientPhoto = computed\(\(\) => patient\.value\.photo_path/)
+  assert.match(source, /class="patient-avatar-photo"[^>]*:src="patientPhoto"[^>]*alt="Foto pasien"/)
+  assert.match(source, /class="patient-welcome-figure patient-welcome-photo"[^>]*:src="patientPhoto \|\| patientHero"/)
+  assert.match(source, /class="patient-profile-photo"[^>]*:src="patientPhoto"[^>]*alt="Foto pasien"/)
+  assert.doesNotMatch(source, /const cadrePhoto = computed/)
   assert.match(source, /v-else>{{ initials }}<\/template>/)
 })
