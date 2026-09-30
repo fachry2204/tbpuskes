@@ -64,12 +64,24 @@ test('cadre dashboard uses uploaded cadre photo in header and hero', () => {
   assert.doesNotMatch(source, /Tetap semangat mendampingi pasien TB di wilayah kita/)
 })
 
-test('cadre reports show per-patient medication status for selected day', () => {
+test('patient and cadre dashboards use readable typography', () => {
+  assert.match(source, /\.kader-reference,\.patient-dashboard\{font-size:15px/)
+  assert.match(source, /:is\(p,small,span,time,em,a,button,label,input,select,textarea\)[^}]*font-size:13px/)
+  assert.match(source, /:is\(b,strong\)[^}]*font-size:14px/)
+  assert.match(source, /\.kader-menu-item[^}]*\.patient-bottom-nav button\{font-size:12px/)
+})
+
+test('cadre monitoring shows dated status page with filters and patient detail popup', () => {
   assert.match(source, /\/kader\/medication-reports\/daily\?date=/)
+  assert.match(source, /panel==='monitoring'/)
   assert.match(source, /type="date"[^>]*v-model="cadreReportDate"/)
-  assert.match(source, /v-for="item in cadreDailyPatients"/)
-  assert.match(source, /Sudah minum/)
-  assert.match(source, /Tidak minum/)
-  assert.match(source, /Belum melapor/)
-  assert.doesNotMatch(source, /Ringkasan laporan pasien aktif hari ini/)
+  assert.match(source, /cadreMonitoringFilter/)
+  assert.match(source, /filteredCadreDailyPatients/)
+  assert.match(source, /Sudah Minum/)
+  assert.match(source, /Tidak Minum/)
+  assert.match(source, /Belum Lapor/)
+  assert.match(source, /openCadrePatientDetail\(item\)/)
+  assert.match(source, /v-if="selectedCadreDailyPatient"[^>]*class="cadre-patient-detail-backdrop"/)
+  assert.match(source, /role="dialog"[^>]*aria-modal="true"[^>]*aria-label="Detail monitoring pasien"/)
+  assert.doesNotMatch(source, /Pantau laporan minum obat pasien binaan untuk hari ini/)
 })

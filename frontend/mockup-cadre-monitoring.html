@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mockup - Monitoring Minum Obat Kader</title>
+  <style>
+    :root {
+      --primary: #0a988b;
+      --primary-dark: #087f78;
+      --primary-soft: #eaf8f5;
+      --text: #18363e;
+      --muted: #6f8c95;
+      --good: #0d8c62;
+      --good-bg: #dff7ec;
+      --warn: #c25e00;
+      --warn-bg: #fff3d6;
+      --bad: #d9383a;
+      --bad-bg: #ffe7e8;
+      --card: #ffffff;
+      --border: #e1eeec;
+      --bg: #f3fbfb;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background: #e3eceb; padding: 24px 12px; display: flex; justify-content: center; color: var(--text); }
+    .device { width: 100%; max-width: 430px; background: var(--bg); border-radius: 28px; box-shadow: 0 18px 45px rgba(10,50,60,.18); overflow: hidden; border: 1px solid #d4e7e4; }
+    
+    /* Top App Bar */
+    .topbar { background: #fff; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .back-btn { width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--primary-soft); color: var(--primary-dark); font-size: 18px; font-weight: bold; cursor: pointer; display: grid; place-items: center; }
+    .topbar h1 { font-size: 16px; font-weight: 800; color: #17485b; }
+    .topbar small { font-size: 12px; color: var(--muted); display: block; }
+    
+    /* Content */
+    .content { padding: 16px 14px 80px; }
+
+    /* Date Filter Card */
+    .date-card { background: #fff; border-radius: 16px; padding: 14px; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(16,70,80,.05); }
+    .date-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .date-card-title { font-size: 13px; font-weight: 700; color: #1f5060; }
+    .date-badge { font-size: 12px; background: var(--primary-soft); color: var(--primary-dark); padding: 3px 8px; border-radius: 999px; font-weight: 600; }
+    .date-row { display: flex; gap: 8px; align-items: center; }
+    .date-input { flex: 1; padding: 8px 12px; border: 1.5px solid #d0e7e3; border-radius: 10px; font-size: 13px; font-weight: 600; color: var(--text); outline: none; background: #fafefe; }
+    .btn-today { padding: 8px 12px; border-radius: 10px; border: 0; background: var(--primary); color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+
+    /* Summary Chips */
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+    .summary-chip { background: #fff; border-radius: 12px; padding: 10px 8px; text-align: center; border: 1px solid var(--border); }
+    .summary-chip b { display: block; font-size: 18px; font-weight: 800; }
+    .summary-chip span { display: block; font-size: 11px; margin-top: 2px; color: var(--muted); font-weight: 600; }
+    .chip-green b { color: var(--good); }
+    .chip-red b { color: var(--bad); }
+    .chip-amber b { color: var(--warn); }
+
+    /* Tabs Filter */
+    .tab-pills { display: flex; gap: 6px; margin-bottom: 12px; background: #e3f2f0; padding: 4px; border-radius: 12px; }
+    .tab-pill { flex: 1; padding: 7px 4px; border: 0; border-radius: 9px; font-size: 12px; font-weight: 700; background: transparent; color: #436d7a; cursor: pointer; text-align: center; }
+    .tab-pill.active { background: #fff; color: var(--primary-dark); box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+
+    /* Patient List */
+    .patient-card { background: #fff; border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(10,50,60,.04); }
+    .patient-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .patient-avatar-circle { width: 34px; height: 34px; border-radius: 50%; background: var(--primary-soft); display: grid; place-items: center; color: var(--primary-dark); font-weight: 800; font-size: 13px; flex: none; }
+    .patient-info { flex: 1; min-width: 0; }
+    .patient-name { font-size: 14px; font-weight: 800; color: #17485b; margin-bottom: 2px; }
+    .patient-sub { font-size: 12px; color: var(--muted); }
+    .status-badge { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 999px; white-space: nowrap; }
+    .badge-taken { background: var(--good-bg); color: var(--good); }
+    .badge-not { background: var(--bad-bg); color: var(--bad); }
+    .badge-unreported { background: var(--warn-bg); color: var(--warn); }
+
+    .patient-detail-box { margin-top: 9px; padding: 8px 10px; background: #f8fdfc; border-radius: 9px; border-left: 3px solid var(--primary); font-size: 12px; color: #325f6e; line-height: 1.4; }
+    .patient-detail-box.warning { border-left-color: var(--warn); background: #fffdf6; }
+    .patient-detail-box.danger { border-left-color: var(--bad); background: #fff6f6; }
+
+    .patient-actions { display: flex; gap: 8px; margin-top: 10px; align-items: center; justify-content: flex-end; }
+    .btn-wa { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 8px; background: #25d366; color: #fff; font-size: 12px; font-weight: 700; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="device">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="back-btn" title="Kembali">←</button>
+        <div>
+          <h1>Monitoring Minum Obat</h1>
+          <small>Wilayah Petukangan Utara</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Date Selector -->
+      <section class="date-card">
+        <div class="date-card-header">
+          <span class="date-card-title">Filter Tanggal Laporan</span>
+          <span class="date-badge">1 Okt 2026</span>
+        </div>
+        <div class="date-row">
+          <input type="date" class="date-input" value="2026-10-01" />
+          <button class="btn-today">Hari Ini</button>
+        </div>
+      </section>
+
+      <!-- Summary Chips -->
+      <section class="summary-grid">
+        <div class="summary-chip chip-green">
+          <b>2</b>
+          <span>Sudah Minum</span>
+        </div>
+        <div class="summary-chip chip-red">
+          <b>1</b>
+          <span>Tidak Minum</span>
+        </div>
+        <div class="summary-chip chip-amber">
+          <b>2</b>
+          <span>Belum Lapor</span>
+        </div>
+      </section>
+
+      <!-- Tab Pills -->
+      <div class="tab-pills">
+        <button class="tab-pill active">Semua (5)</button>
+        <button class="tab-pill">Sudah Minum (2)</button>
+        <button class="tab-pill">Belum Minum / Lapor (3)</button>
+      </div>
+
+      <!-- Patient Cards -->
+      <!-- Pasien 1: Sudah Minum -->
+      <article class="patient-card">
+        <div class="patient-card-header">
+          <div class="patient-avatar-circle">AS</div>
+          <div class="patient-info">
+            <h3 class="patient-name">Agus Solahudin</h3>
+            <p class="patient-sub">RT 003 / RW 002 · Jadwal Pukul 08:00 WIB</p>
+          </div>
+          <span class="status-badge badge-taken">Sudah Minum</span>
+        </div>
+        <div class="patient-detail-box">
+          Laporan terkirim pukul <strong>08:12 WIB</strong> · Foto minum obat terverifikasi. Tidak ada efek samping.
+        </div>
+        <div class="patient-actions">
+          <a href="#" class="btn-wa">Hubungi WA</a>
+        </div>
+      </article>
+
+      <!-- Pasien 2: Sudah Minum + Ada Efek Samping -->
+      <article class="patient-card">
+        <div class="patient-card-header">
+          <div class="patient-avatar-circle">FS</div>
+          <div class="patient-info">
+            <h3 class="patient-name">Fila Sabrina Karim</h3>
+            <p class="patient-sub">RT 005 / RW 001 · Jadwal Pukul 07:30 WIB</p>
+          </div>
+          <span class="status-badge badge-taken">Sudah Minum</span>
+        </div>
+        <div class="patient-detail-box warning">
+          Laporan pukul <strong>07:45 WIB</strong> · <strong>Ada Efek Samping:</strong> Mual / pusing ringan setelah minum obat.
+        </div>
+        <div class="patient-actions">
+          <a href="#" class="btn-wa">Hubungi WA</a>
+        </div>
+      </article>
+
+      <!-- Pasien 3: Tidak Minum -->
+      <article class="patient-card">
+        <div class="patient-card-header">
+          <div class="patient-avatar-circle" style="background:#ffebee;color:#c62828">RD</div>
+          <div class="patient-info">
+            <h3 class="patient-name">Rian Darmawan</h3>
+            <p class="patient-sub">RT 002 / RW 004 · Jadwal Pukul 09:00 WIB</p>
+          </div>
+          <span class="status-badge badge-not">Tidak Minum</span>
+        </div>
+        <div class="patient-detail-box danger">
+          <strong>Alasan Tidak Minum:</strong> Perut terasa perih dan obat habis belum ambil di puskesmas.
+        </div>
+        <div class="patient-actions">
+          <a href="#" class="btn-wa">Ingatkan / Follow-up WA</a>
+        </div>
+      </article>
+
+      <!-- Pasien 4: Belum Lapor -->
+      <article class="patient-card">
+        <div class="patient-card-header">
+          <div class="patient-avatar-circle" style="background:#fff8e1;color:#b78103">SN</div>
+          <div class="patient-info">
+            <h3 class="patient-name">Siti Nurhaliza</h3>
+            <p class="patient-sub">RT 001 / RW 002 · Jadwal Pukul 08:00 WIB</p>
+          </div>
+          <span class="status-badge badge-unreported">Belum Lapor</span>
+        </div>
+        <div class="patient-detail-box warning">
+          Belum mengirim foto/laporan minum obat pada tanggal yang dipilih.
+        </div>
+        <div class="patient-actions">
+          <a href="#" class="btn-wa">Ingatkan via WA</a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</body>
+</html>

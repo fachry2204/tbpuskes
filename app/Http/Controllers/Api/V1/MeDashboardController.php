@@ -119,7 +119,7 @@ class MeDashboardController extends Controller
             ->where('cadre_id', $cadreId)
             ->where('status', 'active')
             ->orderBy('full_name')
-            ->get(['id', 'full_name', 'phone']);
+            ->get(['id', 'full_name', 'phone', 'rt', 'rw', 'full_address']);
 
         $reports = DB::table('medication_reports')
             ->whereIn('patient_id', $patients->pluck('id'))
@@ -138,12 +138,18 @@ class MeDashboardController extends Controller
                 'id' => $patient->id,
                 'full_name' => $patient->full_name,
                 'phone' => $patient->phone,
+                'rt' => $patient->rt,
+                'rw' => $patient->rw,
+                'address' => $patient->address,
                 'daily_status' => $dailyStatus,
                 'reported_time' => $latest?->server_received_at ? substr((string) $latest->server_received_at, 11, 5) : null,
                 'scheduled_time' => $latest?->scheduled_time ? substr((string) $latest->scheduled_time, 0, 5) : null,
                 'report_status' => $latest?->status,
                 'not_taken_reason' => $dailyStatus === 'not_taken' ? $latest?->not_taken_reason : null,
                 'has_side_effect' => $patientReports->contains(fn ($report) => (bool) $report->has_side_effect),
+                'side_effect_category' => $latest?->side_effect_category,
+                'side_effect_description' => $latest?->side_effect_description,
+                'verification_note' => $latest?->verification_note,
             ];
         });
 
