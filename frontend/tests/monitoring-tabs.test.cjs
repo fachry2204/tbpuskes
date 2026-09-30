@@ -14,4 +14,14 @@ test('admin monitoring page displays tabs for reported and unreported patients',
   assert.match(vueFile, /openReport\(row\)/)
   assert.match(vueFile, /Detail Laporan Minum Obat/)
   assert.match(vueFile, /verifyReport/)
+
+  // Memastikan filter tanggal dan kolom tanggal lapor serta nomor WA
+  assert.match(vueFile, /type="date"/)
+  assert.match(vueFile, /Tanggal Lapor/)
+  assert.match(vueFile, /wa\.me/)
+  assert.match(vueFile, /modal-overlay/)
+  assert.match(vueFile, /side_effect_description/)
+  assert.match(vueFile, /deleteReport/)
+  assert.match(vueFile, /Edit Data/)
+  assert.match(vueFile, /Hapus/)
 })

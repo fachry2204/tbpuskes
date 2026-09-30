@@ -70,9 +70,12 @@ Route::prefix('v1')->group(function (): void {
     Route::get('/me/dashboard', [MeDashboardController::class, 'patient'])->middleware('auth:sanctum');
     Route::get('/kader/dashboard', [MeDashboardController::class, 'cadre'])->middleware('auth:sanctum');
     Route::get('/kader/patients', [MeDashboardController::class, 'cadrePatients'])->middleware('auth:sanctum');
+    Route::get('/kader/medication-reports/daily', [MeDashboardController::class, 'cadreDailyMedicationReports'])->middleware('auth:sanctum');
     Route::get('/kader/control-schedules', [MeDashboardController::class, 'cadreSchedules'])->middleware('auth:sanctum');
     Route::get('/me/medication/history', [MedicationReportController::class, 'history'])->middleware('auth:sanctum');
     Route::get('/medication-monitoring', [MedicationMonitoringController::class, 'index'])->middleware('auth:sanctum');
+    Route::put('/medication-monitoring/{report}', [MedicationMonitoringController::class, 'update'])->middleware('auth:sanctum');
+    Route::delete('/medication-monitoring/{report}', [MedicationMonitoringController::class, 'destroy'])->middleware('auth:sanctum');
     Route::get('/medication-monitoring/map', [MedicationMonitoringController::class, 'map'])->middleware('auth:sanctum');
     Route::get('/medication-monitoring/unreported', [MedicationMonitoringController::class, 'unreported'])->middleware('auth:sanctum');
     Route::post('/medication-monitoring/{report}/verify', [MedicationMonitoringController::class, 'verify'])->middleware('auth:sanctum');

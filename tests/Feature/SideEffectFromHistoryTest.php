@@ -69,9 +69,20 @@ class SideEffectFromHistoryTest extends TestCase
         ]);
     }
 
-    public function test_patient_can_add_additional_side_effect_to_report_that_already_has_one(): void
+    public function test_patient_can_update_side_effect_that_already_exists(): void
     {
         [$user, $patient, $report] = $this->createPatientWithReport(true);
+        DB::table('side_effect_reports')->insert([
+            'medication_report_id' => $report->id,
+            'patient_id' => $patient->id,
+            'category' => 'mual',
+            'description' => 'Mual setelah minum obat',
+            'severity' => 'low',
+            'requires_follow_up' => true,
+            'follow_up_status' => 'open',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         $response = $this->actingAs($user)->postJson("/api/v1/me/medication/reports/{$report->id}/side-effect", [
             'category' => 'ruam',
@@ -80,11 +91,10 @@ class SideEffectFromHistoryTest extends TestCase
 
         $response->assertOk();
 
-        // Original report fields unchanged (already had side effect)
         $report->refresh();
-        $this->assertEquals('mual', $report->side_effect_category);
-
-        // But new side_effect_reports row added
+        $this->assertEquals('ruam', $report->side_effect_category);
+        $this->assertEquals('Gatal di tangan kanan', $report->side_effect_description);
+        $this->assertDatabaseCount('side_effect_reports', 1);
         $this->assertDatabaseHas('side_effect_reports', [
             'medication_report_id' => $report->id,
             'category' => 'ruam',

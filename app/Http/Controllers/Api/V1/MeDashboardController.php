@@ -72,12 +72,14 @@ class MeDashboardController extends Controller
         abort_unless($request->user()->role === 'kader', 403);
 
         $today = today(config('app.timezone'));
+        $cadre = DB::table('cadres')->where('user_id', $request->user()->id)->first(['full_name', 'photo_path']);
         $cadreId = DB::table('cadres')->where('user_id', $request->user()->id)->value('id');
         $patientIds = Patient::query()->where('cadre_id', $cadreId)->where('status', 'active')->pluck('id');
         $reports = DB::table('medication_reports')->whereIn('patient_id', $patientIds)->whereDate('report_date', $today);
         $reportedToday = (clone $reports)->distinct()->count('patient_id');
 
         return response()->json(['success' => true, 'data' => [
+            'cadre' => $cadre,
             'patients' => $patientIds->count(),
             'taken_today' => (clone $reports)->where('medication_taken', true)->distinct('patient_id')->count('patient_id'),
             'not_taken_today' => (clone $reports)->where('medication_taken', false)->distinct('patient_id')->count('patient_id'),
@@ -104,6 +106,57 @@ class MeDashboardController extends Controller
             ->get();
 
         return response()->json(['success' => true, 'data' => $patients]);
+    }
+
+    public function cadreDailyMedicationReports(Request $request): JsonResponse
+    {
+        abort_unless($request->user()->role === 'kader', 403);
+        $validated = $request->validate(['date' => ['nullable', 'date_format:Y-m-d']]);
+        $date = $validated['date'] ?? today(config('app.timezone'))->toDateString();
+        $cadreId = DB::table('cadres')->where('user_id', $request->user()->id)->value('id');
+
+        $patients = Patient::query()
+            ->where('cadre_id', $cadreId)
+            ->where('status', 'active')
+            ->orderBy('full_name')
+            ->get(['id', 'full_name', 'phone']);
+
+        $reports = DB::table('medication_reports')
+            ->whereIn('patient_id', $patients->pluck('id'))
+            ->whereDate('report_date', $date)
+            ->orderBy('server_received_at')
+            ->get()
+            ->groupBy('patient_id');
+
+        $items = $patients->map(function (Patient $patient) use ($reports) {
+            $patientReports = $reports->get($patient->id, collect());
+            $latest = $patientReports->last();
+            $hasTaken = $patientReports->contains(fn ($report) => (bool) $report->medication_taken);
+            $dailyStatus = $patientReports->isEmpty() ? 'unreported' : ($hasTaken ? 'taken' : 'not_taken');
+
+            return [
+                'id' => $patient->id,
+                'full_name' => $patient->full_name,
+                'phone' => $patient->phone,
+                'daily_status' => $dailyStatus,
+                'reported_time' => $latest?->server_received_at ? substr((string) $latest->server_received_at, 11, 5) : null,
+                'scheduled_time' => $latest?->scheduled_time ? substr((string) $latest->scheduled_time, 0, 5) : null,
+                'report_status' => $latest?->status,
+                'not_taken_reason' => $dailyStatus === 'not_taken' ? $latest?->not_taken_reason : null,
+                'has_side_effect' => $patientReports->contains(fn ($report) => (bool) $report->has_side_effect),
+            ];
+        });
+
+        return response()->json(['success' => true, 'data' => [
+            'date' => $date,
+            'summary' => [
+                'total' => $items->count(),
+                'taken' => $items->where('daily_status', 'taken')->count(),
+                'not_taken' => $items->where('daily_status', 'not_taken')->count(),
+                'unreported' => $items->where('daily_status', 'unreported')->count(),
+            ],
+            'patients' => $items->values(),
+        ]]);
     }
 
     public function cadreSchedules(Request $request): JsonResponse
